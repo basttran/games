@@ -1,0 +1,10 @@
+{
+  "name": "@games/multi-app",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "dns": "^0.2.2",
+    "dotenv": "^16.4.7",
+    "socket.io-client": "^4.8.1"
+  }
+}

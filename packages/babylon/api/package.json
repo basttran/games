@@ -1,0 +1,36 @@
+{
+  "name": "@games/babylon-api",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "name": "babylon-api",
+    "projectType": "application",
+    "sourceRoot": "packages/babylon/api/src",
+    "targets": {
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "babylon-api:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "babylon-api:build:development"
+          },
+          "production": {
+            "buildTarget": "babylon-api:build:production"
+          }
+        }
+      },
+      "test": {
+        "options": {
+          "passWithNoTests": true
+        }
+      }
+    }
+  }
+}

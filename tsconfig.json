@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/multi/app"
+    },
+    {
+      "path": "./packages/multi/api-e2e"
+    },
+    {
+      "path": "./packages/multi/api"
+    },
+    {
+      "path": "./packages/babylon/app"
+    },
+    {
+      "path": "./packages/babylon/api-e2e"
+    },
+    {
+      "path": "./packages/babylon/api"
+    }
+  ]
+}

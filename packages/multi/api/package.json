@@ -1,0 +1,45 @@
+{
+  "name": "@games/multi-api",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "name": "multi-api",
+    "projectType": "application",
+    "sourceRoot": "packages/multi/api/src",
+    "targets": {
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "multi-api:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "multi-api:build:development"
+          },
+          "production": {
+            "buildTarget": "multi-api:build:production"
+          }
+        }
+      },
+      "test": {
+        "options": {
+          "passWithNoTests": true
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/socket.io": "^3.0.2",
+    "socket.io": "^4.8.1"
+  }
+}
