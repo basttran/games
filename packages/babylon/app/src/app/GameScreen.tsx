@@ -1,33 +1,17 @@
-import { Engine, Scene } from "@babylonjs/core";
+import { pipe } from "fp-ts/function";
+import * as O from 'fp-ts/Option';
 import { useEffect } from "react";
-
-const getCanvas = (): HTMLCanvasElement => {
-  const canvas = document.getElementById('game') as HTMLCanvasElement;
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  return canvas;
-};
+import { getCanvas } from "../canvas";
+import { createResizableEngine } from "../engine";
+import { createAndRenderScene } from "../scene";
 
 export const GameScreen = () => {
   useEffect(() => {
-    const canvas = getCanvas();
-    if (canvas) {
-
-      const engine = new Engine(canvas, true, {
-        preserveDrawingBuffer: true,
-        stencil: true,
-      });
-      window.addEventListener('resize', () => {
-        engine.resize();
-      });
-      const scene = new Scene(engine);
-      // engine.stopRenderLoop();
-      // scene.dispose();
-
-      engine.runRenderLoop(() => {
-        scene.render();
-      });
-    }
+    pipe(
+      getCanvas(document),
+      O.map(createResizableEngine(window)),
+      O.map(createAndRenderScene)
+    )
   });
 
   return (
