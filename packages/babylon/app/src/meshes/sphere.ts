@@ -1,5 +1,5 @@
 import { Color3, MeshBuilder, Scene, Vector3 } from "@babylonjs/core";
-import { doCreateColorMaterial } from "./material";
+import { doCreateColorMaterial } from "../material";
 
 export const setupSphere = (scene: Scene) => {
   const createColorMaterial = doCreateColorMaterial(scene);

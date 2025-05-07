@@ -1,5 +1,5 @@
 import { ActionManager, Color3, CSG, IncrementValueAction, InterpolateValueAction, MeshBuilder, Scene, SetValueAction, Vector3 } from "@babylonjs/core";
-import { doCreateColorMaterial } from "./material";
+import { doCreateColorMaterial } from "../material";
 
 
 export  const setupBoxes = (scene: Scene) => {

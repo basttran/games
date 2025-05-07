@@ -1,5 +1,5 @@
 import { Color3, CSG, MeshBuilder, Scene, Vector3 } from "@babylonjs/core";
-import { doCreateColorMaterial } from "./material";
+import { doCreateColorMaterial } from "../material";
 
 export const setupBoundary = (scene: Scene) => {
     const createColorMaterial = doCreateColorMaterial(scene);

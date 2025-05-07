@@ -1,30 +1,33 @@
 import { Engine, IPointerEvent, Scene, Vector3 } from "@babylonjs/core";
 import { pipe } from "fp-ts/function";
 import { setupBackground } from "./background";
-import { setupCamera } from "./camera";
-import { setupGround } from "./ground";
+import { setupFirstPersonCamera, setupOverviewCamera } from "./camera";
+import { setupGround } from "./meshes/ground";
 import { setupLights } from "./lights";
-import { setupBoxes } from "./boxes";
-import { setupBoundary } from "./walls";
+import { setupBoxes } from "./meshes/boxes";
+import { setupBoundary } from "./meshes/boundary";
+import { setupImpostors, setupPhysics } from "./physics";
 
 export const createAndRenderScene = (engine: Engine) => {
   const scene = pipe(
     new Scene(engine),
-    setupScene,
+    // setupScene,
     setupBackground,
     setupLights,
-    setupGround,
-    setupBoundary,
-    setupBoxes,
-    setupCamera,
+    // setupGround,
+    // setupBoxes,
+    // setupBoundary,
+    // setupFirstPersonCamera,
+    setupOverviewCamera,
+    setupPhysics,
+    setupImpostors
     // setupPlayer
   );
 
-      scene.onPointerDown = ({ button }: IPointerEvent) => {
-        if (button === 0) { engine.enterPointerlock()}
-        if (button === 1) { engine.exitPointerlock()}
-
-    }
+  scene.onPointerDown = ({ button }: IPointerEvent) => {
+    if (button === 0) { engine.enterPointerlock()}
+    if (button === 1) { engine.exitPointerlock()}
+  }
 
 
   engine.runRenderLoop(() => {
