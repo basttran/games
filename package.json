@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "multi:serve": "nx run-many --target=serve --projects=multi-api,multi-app",
-    "babylon:serve": "nx run-many --target=serve --projects=babylon-api,babylon-app"
+    "babylon:serve": "nx run-many --target=serve --projects=babylon-api,babylon-app",
+    "babylon:test": "nx run-many --target=test --projects=babylon-api,babylon-app"
   },
   "private": true,
   "devDependencies": {
@@ -69,8 +70,10 @@
     "@babylonjs/gui": "^7.53.3",
     "@types/cannon": "^0.1.13",
     "axios": "^1.6.0",
+    "cannon": "^0.6.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "fp-ts": "^2.16.10",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.11.2"

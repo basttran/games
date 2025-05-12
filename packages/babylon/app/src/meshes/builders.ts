@@ -1,8 +1,12 @@
-import { MeshBuilder, PhysicsImpostor, PhysicsImpostorParameters } from "@babylonjs/core";
+import { Mesh, MeshBuilder, PhysicsImpostor, PhysicsImpostorParameters } from "@babylonjs/core";
 import { pipe } from "fp-ts/function";
 import * as O from 'fp-ts/Option';
 
-export const buildMeshWithPhysicsBuilder = <T extends keyof typeof MeshBuilder, U extends (typeof MeshBuilder)[T]>(creator: U, impostorType: number) => {
+type MeshModifier = (mesh: Mesh) => Mesh
+
+export const buildMeshWithPhysicsBuilder = <T extends keyof typeof MeshBuilder, U extends (typeof MeshBuilder)[T]>(
+  creator: U, impostorType: number
+) => {
   const builder = (
     ...args: [
       typeof creator.arguments[0],
@@ -29,10 +33,35 @@ export const buildMeshWithPhysicsBuilder = <T extends keyof typeof MeshBuilder, 
     scene: Parameters<U>[2]) => ReturnType<typeof creator>
 }
 
+export const buildMeshWithSpecs = <T extends keyof typeof MeshBuilder, U extends (typeof MeshBuilder)[T]>(
+  creator: U,
+  modifier: MeshModifier
+) => {
+  const builder = (
+    ...args: [
+      typeof creator.arguments[0],
+      typeof creator.arguments[1],
+      typeof creator.arguments[2] 
+    ]
+  ) => {
+    return pipe(
+      creator(args[0], args[1], args[2]),
+      O.fromNullable,
+      O.map(modifier),
+      O.toNullable
+    )
+  }
+
+  return builder as (
+    name: Parameters<U>[0],
+    options: Parameters<U>[1],
+    scene: Parameters<U>[2]) => ReturnType<typeof creator>
+}
+
 
 export const MeshWithPhysicsBuilder = {
-    CreateSphere: buildMeshWithPhysicsBuilder( MeshBuilder.CreateSphere, PhysicsImpostor.SphereImpostor),
-    CreateBox: buildMeshWithPhysicsBuilder( MeshBuilder.CreateBox, PhysicsImpostor.BoxImpostor),
+    CreateSphere: buildMeshWithPhysicsBuilder(MeshBuilder.CreateSphere, PhysicsImpostor.SphereImpostor),
+    CreateBox: buildMeshWithPhysicsBuilder(MeshBuilder.CreateBox, PhysicsImpostor.BoxImpostor),
     CreateTiledBox: buildMeshWithPhysicsBuilder(MeshBuilder.CreateTiledBox, PhysicsImpostor.BoxImpostor),
     CreateDisc: buildMeshWithPhysicsBuilder(MeshBuilder.CreateDisc, PhysicsImpostor.PlaneImpostor),
     CreateIcoSphere: buildMeshWithPhysicsBuilder(MeshBuilder.CreateIcoSphere, PhysicsImpostor.SphereImpostor),
