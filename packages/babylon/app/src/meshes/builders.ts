@@ -1,6 +1,15 @@
-import { LinesMesh, Mesh, MeshBuilder, Vector3 } from '@babylonjs/core';
-import { pipe } from 'fp-ts/function';
-import * as O from 'fp-ts/Option';
+import {
+  Engine,
+  GoldbergMesh,
+  GroundMesh,
+  LinesMesh,
+  Mesh,
+  MeshBuilder,
+  PhysicsImpostor,
+  Scene,
+  Vector3,
+} from '@babylonjs/core';
+import { setPhysics } from '../interactions/physics';
 
 export const MeshWithSpecBuilder = {
   CreateBox: MeshBuilder.CreateBox,
@@ -30,108 +39,107 @@ export const MeshWithSpecBuilder = {
   CreateGeodesic: MeshBuilder.CreateGeodesic,
   CreateGoldberg: MeshBuilder.CreateGoldberg,
   CreateDecal: MeshBuilder.CreateDecal,
+  // CreateText: MeshBuilder.CreateText,
   CreateCapsule: MeshBuilder.CreateCapsule,
 };
 
-type MeshBuilderKey = keyof typeof MeshWithSpecBuilder;
-type MeshBuilderCreatorType<T extends MeshBuilderKey> = (typeof MeshBuilder)[T];
-
 export const buildMeshWithSpecToType = <
-  T extends MeshBuilderKey,
-  U extends MeshBuilderCreatorType<T>,
-  V extends Mesh | LinesMesh,
-  W extends (...args: any[]) => (mesh: V) => V
+  T extends keyof typeof MeshWithSpecBuilder,
+  U extends (
+    ...args: any[]
+  ) => <V extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: V) => V
 >(
-  creator: U,
-  modifier: W
-): ((
-  name: Parameters<U>[0],
-  options: Parameters<U>[1],
-  scene: Parameters<U>[2],
-  modifierArgs: Parameters<W>
-) => ReturnType<U>) => {
+  key: T,
+  modifier: U
+) => {
+  const creator = MeshWithSpecBuilder[key];
   const builder = (
     ...args: [
       (typeof creator.arguments)[0],
       (typeof creator.arguments)[1],
       (typeof creator.arguments)[2],
-      Parameters<W>
+      Parameters<U>
     ]
   ) => {
-    const result = pipe(
-      creator(args[0], args[1], args[2]),
-      O.fromPredicate((m) => m != null),
-      O.map(modifier),
-      O.toNullable
-    );
-    return result as ReturnType<U>;
+    const mesh = creator(args[0], args[1], args[2]);
+    const modify = modifier(...args[3]);
+    const modifiedMesh = modify(mesh);
+    return modifiedMesh;
   };
 
-  return builder;
+  if (key === 'CreateDecal') {
+    return (
+      name: Parameters<(typeof MeshWithSpecBuilder)[T]>[0],
+      mesh: Parameters<(typeof MeshWithSpecBuilder)[T]>[1],
+      options: Parameters<(typeof MeshWithSpecBuilder)[T]>[2],
+      modifierArgs: Parameters<U>
+    ) => {
+      return builder(name, mesh, options, modifierArgs);
+    };
+  }
+
+  return (
+    name: Parameters<(typeof MeshWithSpecBuilder)[T]>[0],
+    options: Parameters<(typeof MeshWithSpecBuilder)[T]>[1],
+    scene: Parameters<(typeof MeshWithSpecBuilder)[T]>[2],
+    modifierArgs: Parameters<U>
+  ) => {
+    return builder(name, options, scene, modifierArgs);
+  };
 };
 
-type MeshModifier = (
-  ...modifierArgs: any[]
-) => <T extends Mesh | LinesMesh>(mesh: T) => T;
-
-export const buildMeshWithSpecsBuilder = (modifier: MeshModifier) => ({
-  CreateSphere: buildMeshWithSpecToType(MeshBuilder.CreateSphere, modifier),
-  CreateBox: buildMeshWithSpecToType(MeshBuilder.CreateBox, modifier),
-  CreateTiledBox: buildMeshWithSpecToType(MeshBuilder.CreateTiledBox, modifier),
-  CreateDisc: buildMeshWithSpecToType(MeshBuilder.CreateDisc, modifier),
-  CreateIcoSphere: buildMeshWithSpecToType(
-    MeshBuilder.CreateIcoSphere,
-    modifier
-  ),
-  CreateRibbon: buildMeshWithSpecToType(MeshBuilder.CreateRibbon, modifier),
-  CreateCylinder: buildMeshWithSpecToType(MeshBuilder.CreateCylinder, modifier),
-  CreateTorus: buildMeshWithSpecToType(MeshBuilder.CreateTorus, modifier),
-  CreateTorusKnot: buildMeshWithSpecToType(
-    MeshBuilder.CreateTorusKnot,
-    modifier
-  ),
-  ExtrudeShape: buildMeshWithSpecToType(MeshBuilder.ExtrudeShape, modifier),
-  ExtrudeShapeCustom: buildMeshWithSpecToType(
-    MeshBuilder.ExtrudeShapeCustom,
-    modifier
-  ),
-  CreateLathe: buildMeshWithSpecToType(MeshBuilder.CreateLathe, modifier),
-  CreateTiledPlane: buildMeshWithSpecToType(
-    MeshBuilder.CreateTiledPlane,
-    modifier
-  ),
-  CreatePlane: buildMeshWithSpecToType(MeshBuilder.CreatePlane, modifier),
-  CreateTiledGround: buildMeshWithSpecToType(
-    MeshBuilder.CreateTiledGround,
-    modifier
-  ),
-  CreatePolygon: buildMeshWithSpecToType(MeshBuilder.CreatePolygon, modifier),
-  ExtrudePolygon: buildMeshWithSpecToType(MeshBuilder.ExtrudePolygon, modifier),
-  CreateTube: buildMeshWithSpecToType(MeshBuilder.CreateTube, modifier),
-  CreatePolyhedron: buildMeshWithSpecToType(
-    MeshBuilder.CreatePolyhedron,
-    modifier
-  ),
-  CreateGeodesic: buildMeshWithSpecToType(MeshBuilder.CreateGeodesic, modifier),
-  CreateDecal: buildMeshWithSpecToType(MeshBuilder.CreateDecal, modifier),
-  CreateCapsule: buildMeshWithSpecToType(MeshBuilder.CreateCapsule, modifier),
-  CreateLineSystem: buildMeshWithSpecToType(
-    MeshBuilder.CreateLineSystem,
-    modifier
-  ),
-  CreateLines: buildMeshWithSpecToType(MeshBuilder.CreateLines, modifier),
-  CreateDashedLines: buildMeshWithSpecToType(
-    MeshBuilder.CreateDashedLines,
-    modifier
-  ),
-  CreateGround: buildMeshWithSpecToType(MeshBuilder.CreateGround, modifier),
+export const buildMeshWithSpecsBuilder = (
+  modifier: (
+    ...args: any[]
+  ) => <V extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: V) => V
+) => ({
+  CreateSphere: buildMeshWithSpecToType('CreateSphere', modifier),
+  CreateBox: buildMeshWithSpecToType('CreateBox', modifier),
+  CreateTiledBox: buildMeshWithSpecToType('CreateTiledBox', modifier),
+  CreateDisc: buildMeshWithSpecToType('CreateDisc', modifier),
+  CreateIcoSphere: buildMeshWithSpecToType('CreateIcoSphere', modifier),
+  CreateRibbon: buildMeshWithSpecToType('CreateRibbon', modifier),
+  CreateCylinder: buildMeshWithSpecToType('CreateCylinder', modifier),
+  CreateTorus: buildMeshWithSpecToType('CreateTorus', modifier),
+  CreateTorusKnot: buildMeshWithSpecToType('CreateTorusKnot', modifier),
+  ExtrudeShape: buildMeshWithSpecToType('ExtrudeShape', modifier),
+  ExtrudeShapeCustom: buildMeshWithSpecToType('ExtrudeShapeCustom', modifier),
+  CreateLathe: buildMeshWithSpecToType('CreateLathe', modifier),
+  CreateTiledPlane: buildMeshWithSpecToType('CreateTiledPlane', modifier),
+  CreatePlane: buildMeshWithSpecToType('CreatePlane', modifier),
+  CreateTiledGround: buildMeshWithSpecToType('CreateTiledGround', modifier),
+  CreatePolygon: buildMeshWithSpecToType('CreatePolygon', modifier),
+  ExtrudePolygon: buildMeshWithSpecToType('ExtrudePolygon', modifier),
+  CreateTube: buildMeshWithSpecToType('CreateTube', modifier),
+  CreatePolyhedron: buildMeshWithSpecToType('CreatePolyhedron', modifier),
+  CreateGeodesic: buildMeshWithSpecToType('CreateGeodesic', modifier),
+  CreateDecal: buildMeshWithSpecToType('CreateDecal', modifier),
+  CreateCapsule: buildMeshWithSpecToType('CreateCapsule', modifier),
+  CreateLineSystem: buildMeshWithSpecToType('CreateLineSystem', modifier),
+  CreateLines: buildMeshWithSpecToType('CreateLines', modifier),
+  CreateDashedLines: buildMeshWithSpecToType('CreateDashedLines', modifier),
+  CreateGround: buildMeshWithSpecToType('CreateGround', modifier),
   CreateGroundFromHeightMap: buildMeshWithSpecToType(
-    MeshBuilder.CreateGroundFromHeightMap,
+    'CreateGroundFromHeightMap',
     modifier
   ),
-  CreateGoldberg: buildMeshWithSpecToType(MeshBuilder.CreateGoldberg, modifier),
+  CreateGoldberg: buildMeshWithSpecToType('CreateGoldberg', modifier),
 });
 
+const BoxMaker = buildMeshWithSpecToType('CreateBox', setPhysics);
+const DecalMaker = buildMeshWithSpecToType('CreateDecal', setPhysics);
+
+const scene = new Scene(new Engine(new HTMLCanvasElement()));
+
+const box = BoxMaker('box', { size: 4 }, scene, [
+  PhysicsImpostor.BoxImpostor,
+  { mass: 1, friction: 0.2, restitution: 0.4 },
+]);
+const decal = DecalMaker('boxDecal', box, {}, [
+  PhysicsImpostor.NoImpostor,
+  { mass: 0, friction: 0, restitution: 0 },
+]);
+box.position = new Vector3(0, 0, 0);
 export const setRotation = (rotation: Vector3) => (mesh: Mesh) => {
   mesh.rotation = rotation;
   return mesh;

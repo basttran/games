@@ -1,19 +1,17 @@
-import * as R from 'fp-ts/Record';
 import {
   CannonJSPlugin,
-  MeshBuilder,
   PhysicsImpostor,
   Scene,
   Vector3,
 } from '@babylonjs/core';
 import * as CANNON from 'cannon';
+import { pipe } from 'fp-ts/function';
+import * as R from 'fp-ts/Record';
+import { setPhysics } from './interactions/physics';
 import {
-  buildMeshWithSpecsBuilder,
   buildMeshWithSpecToType,
   MeshWithSpecBuilder,
 } from './meshes/builders';
-import { setPhysics } from './interactions/physics';
-import { pipe } from 'fp-ts/function';
 
 export const setupPhysics = (scene: Scene) => {
   scene.enablePhysics(
@@ -26,13 +24,17 @@ export const setupPhysics = (scene: Scene) => {
 export const setupImpostors = (scene: Scene) => {
   const MeshWithPhysicsBuilder = pipe(
     MeshWithSpecBuilder,
-    R.map((creator) => buildMeshWithSpecToType(creator, setPhysics))
+    R.mapWithIndex((creator, _index) =>
+      buildMeshWithSpecToType(
+        creator,
+        setPhysics
+      )
+    )
   );
   const ground = MeshWithPhysicsBuilder.CreateGround(
     'ground',
     { width: 20, height: 20 },
     scene,
-    // bad tuple typin
     [PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0, restitution: 0.5 }]
   );
   const sphere = MeshWithPhysicsBuilder.CreateSphere(

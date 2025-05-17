@@ -1,9 +1,10 @@
 import {
   CannonJSPlugin,
   Color3,
+  GoldbergMesh,
+  GroundMesh,
   LinesMesh,
   Mesh,
-  MeshBuilder,
   PBRMaterial,
   PhysicsImpostor,
   PhysicsImpostorParameters,
@@ -29,7 +30,7 @@ export const setPhysics =
     impostorType: number,
     physicsImpostorParameters: PhysicsImpostorParameters
   ) =>
-  <T extends (Mesh | LinesMesh)>(mesh: T): T => {
+  <T extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: T): T => {
     return pipe(
       mesh,
       O.fromNullable,
@@ -46,7 +47,7 @@ export const setPhysics =
   };
 export const setColor =
   (color: Color3, scene: Scene) =>
-  <T extends (Mesh | LinesMesh)>(mesh: T): T => {
+  <T extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: T): T => {
     const material = new PBRMaterial(color.toHexString(), scene);
     material.roughness = 1;
     material.albedoColor = color;
@@ -63,13 +64,13 @@ export const setColor =
   };
 
 export const setupImposturedMeshes = (scene: Scene) => {
-  const BoxBuilder = buildMeshWithSpecToType(MeshBuilder.CreateBox, setPhysics);
+  const BoxBuilder = buildMeshWithSpecToType('CreateBox', setPhysics);
   const SphereBuilder = buildMeshWithSpecToType(
-    MeshBuilder.CreateSphere,
+    'CreateSphere',
     setPhysics
   );
   const GroundBuilder = buildMeshWithSpecToType(
-    MeshBuilder.CreateGround,
+    'CreateGround',
     setPhysics
   );
 
