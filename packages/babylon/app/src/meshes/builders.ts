@@ -39,8 +39,8 @@ export const MeshWithSpecBuilder = {
   CreateGeodesic: MeshBuilder.CreateGeodesic,
   CreateGoldberg: MeshBuilder.CreateGoldberg,
   CreateDecal: MeshBuilder.CreateDecal,
-  // CreateText: MeshBuilder.CreateText,
   CreateCapsule: MeshBuilder.CreateCapsule,
+  // CreateText: MeshBuilder.CreateText,
 };
 
 export const buildMeshWithSpecToType = <
