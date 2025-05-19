@@ -1,33 +1,19 @@
 import {
-  AbstractMesh,
   Color3,
   Mesh,
   Nullable,
-  PBRMaterial,
   PhysicsImpostor,
   Scene,
   Vector3,
 } from '@babylonjs/core';
-import { UniversalBuilder } from '../meshes/builders';
-import { doCreateColorMaterial } from '../meshes/material';
-import { setPhysics } from '../physics';
+import { UniversalBuilder } from './meshes/builders';
+import { doCreateColorMaterial } from './meshes/material';
+import { setPhysics } from './physics';
 
-const doSetColliderMaterialTo =
-  (material: PBRMaterial) =>
-  (collider: PhysicsImpostor, _collided: PhysicsImpostor) => {
-    (collider.object as AbstractMesh).material = material;
-  };
-
-const doSetCollidedMaterialTo =
-  (material: PBRMaterial) =>
-  (_collider: PhysicsImpostor, collided: PhysicsImpostor) => {
-    (collided.object as AbstractMesh).material = material;
-  };
-
-export const setupCollision = (
+export const setupTrigger = (
   colliderMesh: Mesh,
   collidedAgainstMesh: Mesh,
-  onCollide: (
+  onTrigger: (
     collider: PhysicsImpostor,
     collidedAgainst: PhysicsImpostor,
     point: Nullable<Vector3>
@@ -41,14 +27,15 @@ export const setupCollision = (
   }
   colliderMesh.physicsImpostor.registerOnPhysicsCollide(
     collidedAgainstMesh.physicsImpostor,
-    onCollide
+    onTrigger
   );
 };
 
-export const setupImposturedMeshesWithCollisions = (scene: Scene) => {
+export const setupImposturedMeshesWithTriggers = (scene: Scene) => {
   const createMaterial = doCreateColorMaterial(scene);
   const redMaterial = createMaterial(new Color3(1, 0, 0));
-  const setCollidedMaterialTo = doSetCollidedMaterialTo(redMaterial);
+  const groundMaterial = createMaterial(new Color3(0.3, 0, 0.3));
+  //   const setCollidedMaterialTo = doSetCollidedMaterialTo(redMaterial);
 
   const MeshWithPhysicsBuilder = UniversalBuilder(setPhysics);
 
@@ -60,6 +47,7 @@ export const setupImposturedMeshesWithCollisions = (scene: Scene) => {
   );
 
   ground.position.y = 0;
+  ground.material = groundMaterial;
 
   const sphere = MeshWithPhysicsBuilder.CreateSphere(
     'sphere',
@@ -68,17 +56,23 @@ export const setupImposturedMeshesWithCollisions = (scene: Scene) => {
     [PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0, restitution: 0.8 }]
   );
   sphere.position = new Vector3(0, 15, 1);
-  const box = MeshWithPhysicsBuilder.CreateBox('box', { size: 2 }, scene, [
-    PhysicsImpostor.BoxImpostor,
-    { mass: 1, friction: 0, restitution: 0.6 },
-  ]);
-  box.position = new Vector3(0, 10, 0);
-
-  setupCollision(
-    box,
-    sphere,
-    (box.physicsImpostor, sphere.physicsImpostor, setCollidedMaterialTo)
+  const box = MeshWithPhysicsBuilder.CreateBox(
+    'box',
+    { width: 4, depth: 4, height: 1 },
+    scene,
+    [PhysicsImpostor.NoImpostor, { mass: 0, friction: 0, restitution: 0 }]
   );
+  box.position.y = 0.5;
+  box.visibility = 0.2;
+
+  let counter = 0;
+
+  scene.registerBeforeRender(() => {
+    if (box.intersectsMesh(sphere)) {
+      counter += 1;
+      console.log(`intersected ${counter}`);
+    }
+  });
 
   return scene;
 };

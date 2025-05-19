@@ -6,10 +6,14 @@ import {
   Mesh,
   MeshBuilder,
   PhysicsImpostor,
+  PhysicsImpostorParameters,
   Scene,
   Vector3,
 } from '@babylonjs/core';
-import { setPhysics } from '../interactions/physics';
+import { MeshBuilderCreateText } from '../font-data';
+import { pipe } from 'fp-ts/function';
+import * as R from 'fp-ts/Record';
+import * as O from 'fp-ts/Option';
 
 export const MeshWithSpecBuilder = {
   CreateBox: MeshBuilder.CreateBox,
@@ -40,7 +44,7 @@ export const MeshWithSpecBuilder = {
   CreateGoldberg: MeshBuilder.CreateGoldberg,
   CreateDecal: MeshBuilder.CreateDecal,
   CreateCapsule: MeshBuilder.CreateCapsule,
-  // CreateText: MeshBuilder.CreateText,
+  CreateText: MeshBuilderCreateText, // MeshBuilder.CreateText,
 };
 
 export const buildMeshWithSpecToType = <
@@ -67,26 +71,29 @@ export const buildMeshWithSpecToType = <
     return modifiedMesh;
   };
 
-  if (key === 'CreateDecal') {
-    return (
-      name: Parameters<(typeof MeshWithSpecBuilder)[T]>[0],
-      mesh: Parameters<(typeof MeshWithSpecBuilder)[T]>[1],
-      options: Parameters<(typeof MeshWithSpecBuilder)[T]>[2],
-      modifierArgs: Parameters<U>
-    ) => {
-      return builder(name, mesh, options, modifierArgs);
-    };
-  }
-
   return (
     name: Parameters<(typeof MeshWithSpecBuilder)[T]>[0],
-    options: Parameters<(typeof MeshWithSpecBuilder)[T]>[1],
+    meshOptions: Parameters<(typeof MeshWithSpecBuilder)[T]>[1],
     scene: Parameters<(typeof MeshWithSpecBuilder)[T]>[2],
     modifierArgs: Parameters<U>
   ) => {
-    return builder(name, options, scene, modifierArgs);
+    return builder(name, meshOptions, scene, modifierArgs);
   };
 };
+
+export const UniversalBuilder = <
+  T extends (
+    ...args: any[]
+  ) => <U extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: U) => U
+>(
+  modifier: T
+) =>
+  pipe(
+    MeshWithSpecBuilder,
+    R.mapWithIndex((creatorIndex, _creator) =>
+      buildMeshWithSpecToType(creatorIndex, modifier)
+    )
+  );
 
 export const buildMeshWithSpecsBuilder = (
   modifier: (
@@ -124,22 +131,51 @@ export const buildMeshWithSpecsBuilder = (
     modifier
   ),
   CreateGoldberg: buildMeshWithSpecToType('CreateGoldberg', modifier),
+  CreateText: buildMeshWithSpecToType('CreateText', modifier),
 });
+
+const setPhysics =
+  (
+    impostorType: number,
+    physicsImpostorParameters: PhysicsImpostorParameters
+  ) =>
+  <T extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: T): T => {
+    return pipe(
+      mesh,
+      O.fromNullable,
+      O.map((m) => {
+        m.physicsImpostor = new PhysicsImpostor(
+          m,
+          impostorType,
+          physicsImpostorParameters
+        );
+        return m;
+      }),
+      O.getOrElse(() => mesh)
+    );
+  };
 
 const BoxMaker = buildMeshWithSpecToType('CreateBox', setPhysics);
 const DecalMaker = buildMeshWithSpecToType('CreateDecal', setPhysics);
+const TextMaker = buildMeshWithSpecToType('CreateText', setPhysics);
 
-const scene = new Scene(new Engine(new HTMLCanvasElement()));
+// const scene = new Scene(new Engine(new HTMLCanvasElement()));
 
-const box = BoxMaker('box', { size: 4 }, scene, [
-  PhysicsImpostor.BoxImpostor,
-  { mass: 1, friction: 0.2, restitution: 0.4 },
-]);
-const decal = DecalMaker('boxDecal', box, {}, [
-  PhysicsImpostor.NoImpostor,
-  { mass: 0, friction: 0, restitution: 0 },
-]);
-box.position = new Vector3(0, 0, 0);
+// const box = BoxMaker('box', { size: 4 }, scene, [
+//   PhysicsImpostor.BoxImpostor,
+//   { mass: 1, friction: 0.2, restitution: 0.4 },
+// ]);
+// const decal = DecalMaker('boxDecal', box, {}, [
+//   PhysicsImpostor.NoImpostor,
+//   { mass: 0, friction: 0, restitution: 0 },
+// ]);
+
+// const text = TextMaker('text', { text: '~' }, scene, [
+//   PhysicsImpostor.NoImpostor,
+//   { mass: 0, friction: 0, restitution: 0 },
+// ]);
+
+// box.position = new Vector3(0, 0, 0);
 export const setRotation = (rotation: Vector3) => (mesh: Mesh) => {
   mesh.rotation = rotation;
   return mesh;

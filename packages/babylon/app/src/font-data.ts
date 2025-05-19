@@ -6,6 +6,7 @@ import {
   Scene,
   Vector4,
 } from '@babylonjs/core';
+import earcut from 'earcut';
 
 export const defaultFontData = {
   glyphs: {
@@ -44,47 +45,58 @@ export const defaultFontData = {
   cssFontStyle: 'normal',
 };
 
-type ForcedCreateText = (
-  name: string,
-  text: string,
-  fontData: IFontData,
-  options?: {
-    size?: number;
-    resolution?: number;
-    depth?: number;
-    sideOrientation?: number;
-    faceUV?: Vector4[];
-    faceColors?: Color4[];
-    perLetterFaceUV?: (letterIndex: number) => Vector4[];
-    perLetterFaceColors?: (letterIndex: number) => Color4[];
-  },
-  scene?: Scene,
-  earcutInjection?: any
-) => Mesh;
+// type ForcedCreateText = (
+//   name: string,
+//   options?: {
+//     text?: string,
+//     fontData?: IFontData,
+//     size?: number;
+//     resolution?: number;
+//     depth?: number;
+//     sideOrientation?: number;
+//     faceUV?: Vector4[];
+//     faceColors?: Color4[];
+//     earcutInjection?: any
+//     perLetterFaceUV?: (letterIndex: number) => Vector4[];
+//     perLetterFaceColors?: (letterIndex: number) => Color4[];
+//   },
+//   scene?: Scene,
+// ) => Mesh;
 
-export const ForceCreateText = (
+export const MeshBuilderCreateText = (
   name: string,
-  text: string,
-  fontData: IFontData,
   options?: {
+    text?: string;
+    fontData?: IFontData;
     size?: number;
     resolution?: number;
     depth?: number;
     sideOrientation?: number;
     faceUV?: Vector4[];
     faceColors?: Color4[];
+    earcutInjection?: any;
     perLetterFaceUV?: (letterIndex: number) => Vector4[];
     perLetterFaceColors?: (letterIndex: number) => Color4[];
   },
-  scene?: Scene,
-  earcutInjection?: any
+  scene?: Scene
 ): Mesh => {
-  return (MeshBuilder.CreateText as ForcedCreateText)(
+  if (options) {
+    const { text, fontData, earcutInjection, ...remainingOptions } = options;
+    return MeshBuilder.CreateText(
+      name,
+      text || '?',
+      fontData || defaultFontData,
+      remainingOptions,
+      scene,
+      earcutInjection || earcut
+    ) as Mesh;
+  }
+  return MeshBuilder.CreateText(
     name,
-    text || '~',
-    fontData || defaultFontData,
-    options,
+    '~',
+    defaultFontData,
+    {},
     scene,
-    earcutInjection
-  );
+    earcut
+  ) as Mesh;
 };

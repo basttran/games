@@ -1,19 +1,34 @@
 import {
   CannonJSPlugin,
+  Color3,
+  GoldbergMesh,
+  GroundMesh,
+  LinesMesh,
+  Mesh,
+  PBRMaterial,
   PhysicsImpostor,
+  PhysicsImpostorParameters,
   Scene,
   Vector3,
+  AmmoJSPlugin,
 } from '@babylonjs/core';
 import * as CANNON from 'cannon';
 import { pipe } from 'fp-ts/function';
-import * as R from 'fp-ts/Record';
-import { setPhysics } from './interactions/physics';
-import {
-  buildMeshWithSpecToType,
-  MeshWithSpecBuilder,
-} from './meshes/builders';
+import * as O from 'fp-ts/Option';
+import { UniversalBuilder } from './meshes/builders';
+import Ammo from 'ammojs-typed';
 
 export const setupPhysics = (scene: Scene) => {
+  // if (physicsPlugin === 'ammo') {
+  //   const ammo = await Ammo();
+  //   scene.enablePhysics(
+  //     new Vector3(0, -9.81, 0),
+  //     new AmmoJSPlugin(true, ammo)
+  //   );
+  //   return scene;
+  // }
+  // if (physicsPlugin === 'cannon') {
+  // }
   scene.enablePhysics(
     new Vector3(0, -9.81, 0),
     new CannonJSPlugin(true, 10, CANNON)
@@ -21,16 +36,46 @@ export const setupPhysics = (scene: Scene) => {
   return scene;
 };
 
+export const setPhysics =
+  (
+    impostorType: number,
+    physicsImpostorParameters: PhysicsImpostorParameters
+  ) =>
+  <T extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: T): T => {
+    return pipe(
+      mesh,
+      O.fromNullable,
+      O.map((m) => {
+        m.physicsImpostor = new PhysicsImpostor(
+          m,
+          impostorType,
+          physicsImpostorParameters
+        );
+        return m;
+      }),
+      O.getOrElse(() => mesh)
+    );
+  };
+export const setColor =
+  (color: Color3, scene: Scene) =>
+  <T extends Mesh | LinesMesh | GoldbergMesh | GroundMesh>(mesh: T): T => {
+    const material = new PBRMaterial(color.toHexString(), scene);
+    material.roughness = 1;
+    material.albedoColor = color;
+
+    return pipe(
+      mesh,
+      O.fromNullable,
+      O.map((m) => {
+        m.material = material;
+        return m;
+      }),
+      O.getOrElse(() => mesh)
+    );
+  };
+
 export const setupImpostors = (scene: Scene) => {
-  const MeshWithPhysicsBuilder = pipe(
-    MeshWithSpecBuilder,
-    R.mapWithIndex((creator, _index) =>
-      buildMeshWithSpecToType(
-        creator,
-        setPhysics
-      )
-    )
-  );
+  const MeshWithPhysicsBuilder = UniversalBuilder(setPhysics);
   const ground = MeshWithPhysicsBuilder.CreateGround(
     'ground',
     { width: 20, height: 20 },
@@ -49,6 +94,14 @@ export const setupImpostors = (scene: Scene) => {
     { mass: 1, friction: 0, restitution: 0.6 },
   ]);
   box.position = new Vector3(0, 10, 0);
+  const text = MeshWithPhysicsBuilder.CreateText(
+    'text',
+    { text: '~', size: 4 },
+    scene,
+    [PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0, restitution: 0.1 }]
+  );
+
+  text.position = new Vector3(0, 4, 0);
 
   return scene;
 };
