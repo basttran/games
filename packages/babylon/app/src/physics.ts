@@ -11,27 +11,43 @@ import {
   Scene,
   Vector3,
   AmmoJSPlugin,
+  HavokPlugin,
 } from '@babylonjs/core';
 import * as CANNON from 'cannon';
 import { pipe } from 'fp-ts/function';
 import * as O from 'fp-ts/Option';
 import { UniversalBuilder } from './meshes/builders';
 import Ammo from 'ammojs-typed';
+import HavokPhysics from '@babylonjs/havok';
 
-export const setupPhysics = (scene: Scene) => {
-  // if (physicsPlugin === 'ammo') {
-  //   const ammo = await Ammo();
-  //   scene.enablePhysics(
-  //     new Vector3(0, -9.81, 0),
-  //     new AmmoJSPlugin(true, ammo)
-  //   );
-  //   return scene;
-  // }
-  // if (physicsPlugin === 'cannon') {
-  // }
+export const setupBasicPhysics = (scene: Scene) => {
+  const FRAMES_PER_SECOND = 60;
+  const GRAVITY = -9.81;
+
+  scene.gravity = new Vector3(0, GRAVITY / FRAMES_PER_SECOND, 0);
+  scene.collisionsEnabled = true;
+  return scene;
+};
+
+export const setupCannonPhysics = (scene: Scene): Scene => {
   scene.enablePhysics(
     new Vector3(0, -9.81, 0),
     new CannonJSPlugin(true, 10, CANNON)
+  );
+  return scene;
+};
+
+export const setupAmmoPhysics = async (scene: Scene): Promise<Scene> => {
+  const ammo = await Ammo();
+  scene.enablePhysics(new Vector3(0, -9.81, 0), new AmmoJSPlugin(true, ammo));
+  return scene;
+};
+
+export const setupHavokPhysics = async (scene: Scene): Promise<Scene> => {
+  const havokInterface = await HavokPhysics();
+  scene.enablePhysics(
+    new Vector3(0, -9.81, 0),
+    new HavokPlugin(true, havokInterface)
   );
   return scene;
 };

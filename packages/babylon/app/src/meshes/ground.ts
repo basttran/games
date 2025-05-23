@@ -24,7 +24,7 @@ export const setupGroundWithImpostor = (scene: Scene) => {
   setPhysics(PhysicsImpostor.BoxImpostor, {
     mass: 0,
     friction: 0,
-    restitution: 0.1,
+    restitution: 0,
   })(ground);
 
   return scene;

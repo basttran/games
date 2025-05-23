@@ -134,8 +134,8 @@ export const setupBoxesWithImpostors = (scene: Scene) => {
     );
     setPhysics(PhysicsImpostor.BoxImpostor, {
       mass: 0,
-      friction: 0.1,
-      restitution: 1,
+      friction: 0,
+      restitution: 0,
     })(box);
     box.position = new Vector3(x, y, z);
     box.material = toggleTexture();

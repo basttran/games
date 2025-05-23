@@ -7,15 +7,19 @@ import { setupLights } from './lights';
 import { setupBoundary } from './meshes/boundary';
 import { setupBoxes, setupBoxesWithImpostors } from './meshes/boxes';
 import { setupGround, setupGroundWithImpostor } from './meshes/ground';
-import { setupImpostors, setupPhysics } from './physics';
-import { setupPlayer, setupPlayerWithVelocity } from './player';
-import { setupPointerLock, setupScene } from './scene';
+import {
+  setupBasicPhysics,
+  setupCannonPhysics,
+  setupImpostors,
+} from './physics';
+import { setupPlayer, setupPlayerWithVelocity, setupStablePlayerWithVelocity } from './player';
+import { setupPointerLock } from './scene';
 import { setupImposturedMeshesWithTriggers } from './trigger';
 import { setupMeshWithVelocity } from './velocity';
 
 export const compositions = {
   basic: flow(
-    setupScene,
+    setupBasicPhysics,
     setupPointerLock,
     setupBackground,
     setupLights,
@@ -26,7 +30,7 @@ export const compositions = {
     setupPlayer
   ),
   basicFPS: flow(
-    setupScene,
+    setupBasicPhysics,
     setupPointerLock,
     setupBackground,
     setupLights,
@@ -36,49 +40,53 @@ export const compositions = {
     setupFirstPersonCamera
   ),
   physics: flow(
-    setupScene,
     setupPointerLock,
     setupBackground,
     setupLights,
     setupOverviewCamera,
-    setupPhysics,
+    setupCannonPhysics,
     setupImpostors
   ),
   collisions: flow(
-    setupScene,
     setupPointerLock,
     setupBackground,
     setupLights,
     setupOverviewCamera,
-    setupPhysics,
+    setupCannonPhysics,
     setupImposturedMeshesWithCollisions
   ),
   triggers: flow(
-    setupScene,
     setupPointerLock,
     setupBackground,
     setupLights,
     setupOverviewCamera,
-    setupPhysics,
+    setupCannonPhysics,
     setupImposturedMeshesWithTriggers
   ),
   velocity: flow(
-    setupScene,
     setupBackground,
     setupLights,
     setupOverviewCamera,
-    setupPhysics,
+    setupCannonPhysics,
     setupMeshWithVelocity
   ),
   velocityPlayer: flow(
-    setupScene,
     setupBackground,
     setupLights,
     setupOverviewCamera,
-    setupPhysics,
+    setupCannonPhysics,
     setupBoxesWithImpostors,
     setupGroundWithImpostor,
     setupPlayerWithVelocity
+  ),
+  stableVelocityPlayer: flow(
+    setupBackground,
+    setupLights,
+    setupOverviewCamera,
+    setupCannonPhysics,
+    setupBoxesWithImpostors,
+    setupGroundWithImpostor,
+    setupStablePlayerWithVelocity
   ),
 };
 

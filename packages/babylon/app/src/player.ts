@@ -8,7 +8,10 @@ import {
 } from '@babylonjs/core';
 import { doCreateColorMaterial } from './material';
 import { doPlayerController } from './controls';
-import { doPlayerWithVelocityController } from './interactions/controls';
+import {
+  doPlayerWithVelocityController,
+  doStablePlayerWithVelocityController,
+} from './interactions/controls';
 import { setPhysics } from './physics';
 
 export const setupPlayer = (scene: Scene) => {
@@ -44,6 +47,31 @@ export const setupPlayerWithVelocity = (scene: Scene) => {
   })(box);
   if (box.physicsImpostor) {
     const { keyboard, player } = doPlayerWithVelocityController(box);
+    scene.onKeyboardObservable.add(keyboard.registerInputs);
+    scene.registerBeforeRender(() => player.move());
+  }
+  return scene;
+};
+export const setupStablePlayerWithVelocity = (scene: Scene) => {
+  const createColorMaterial = doCreateColorMaterial(scene);
+  const cylinder = MeshBuilder.CreateCylinder(
+    `player`,
+    { height: 1, diameter: 1 },
+    scene
+  );
+  cylinder.position = new Vector3(0, 1, -2);
+  cylinder.material = createColorMaterial(new Color3(1, 0, 0));
+  setPhysics(PhysicsImpostor.BoxImpostor, {
+    mass: 1,
+    friction: 0,
+    restitution: 0,
+  })(cylinder);
+  if (cylinder.physicsImpostor) {
+    cylinder.physicsImpostor.physicsBody.angularDamping = 1;
+    const { keyboard, player } = doStablePlayerWithVelocityController(
+      cylinder,
+      scene
+    );
     scene.onKeyboardObservable.add(keyboard.registerInputs);
     scene.registerBeforeRender(() => player.move());
   }
