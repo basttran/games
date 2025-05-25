@@ -6,6 +6,8 @@ import { createResizableEngine } from "../engine";
 import { runGame } from "../game";
 
 export const GameScreen = () => {
+
+
   useEffect(() => {
     pipe(
       getCanvas(document),

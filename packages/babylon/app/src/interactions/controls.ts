@@ -10,6 +10,7 @@ import {
   Vector3,
 } from '@babylonjs/core';
 import { pipe } from 'fp-ts/lib/function';
+import { io } from 'socket.io-client';
 
 export const doPlayerController = (player: Mesh) => {
   const SPEED = 10;
@@ -166,13 +167,27 @@ export const doPlayerWithVelocityController = (player: Mesh) => {
     },
   };
 };
+
+type StablePlayer = {
+  forward: boolean;
+  backward: boolean;
+  rotateLeft: boolean;
+  rotateRight: boolean;
+  strifeLeft: boolean;
+  strifeRight: boolean;
+  strife: boolean;
+  jump: boolean;
+  canJump: boolean;
+  inAir: boolean;
+  direction: Vector3;
+};
 export const doStablePlayerWithVelocityController = (
   player: Mesh,
   scene: Scene
 ) => {
   const ROTATION_SPEED = 0.05;
   const TRANSLATION_SPEED = 3;
-  const state = {
+  const state: StablePlayer = {
     forward: false,
     backward: false,
     rotateLeft: false,
@@ -186,10 +201,41 @@ export const doStablePlayerWithVelocityController = (
     direction: Vector3.Zero(),
   };
 
+  const socket = io('http://localhost:3000', {
+    // autoConnect: false
+  });
+
+  const ghost = player.clone('ghost', null, true, false);
+  ghost.material = null;
+
+  const sendEvent = (event: {
+    position: { x: number; y: number; z: number };
+    rotation: { x: number; y: number; z: number };
+  }) => {
+    socket.emit('message', {
+      ...event,
+    });
+  };
+  socket.on(
+    'ghost',
+    (data: {
+      event: {
+        position: { x: number; y: number; z: number };
+        rotation: { x: number; y: number; z: number };
+      };
+    }) => {
+      console.log('event: ', data.event);
+      const { x: posX, y: posY, z: posZ } = data.event.position;
+      const { x: rotX, y: rotY, z: rotZ } = data.event.rotation;
+      ghost.position = new Vector3(posX, posY, posZ);
+      ghost.rotation = new Vector3(rotX, rotY, rotZ);
+    }
+  );
+
   const groundDetector = MeshBuilder.CreateBox('groundDetector', {
     width: 1,
     depth: 1,
-    height: 0.1,
+    height: 0.01,
   });
   groundDetector.parent = player;
   groundDetector.position.y = player.getBoundingInfo().boundingBox.minimum._y;
@@ -229,6 +275,18 @@ export const doStablePlayerWithVelocityController = (
         }
         if (event.key === ' ' && state.canJump) {
           state.jump = type === 1;
+          sendEvent({
+            position: {
+              x: player.position.x,
+              y: player.position.y,
+              z: player.position.z,
+            },
+            rotation: {
+              x: player.rotation.x,
+              y: player.rotation.y,
+              z: player.rotation.z,
+            },
+          });
         }
       },
     },
