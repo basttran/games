@@ -68,12 +68,22 @@
       "exclude": [
         "packages/multi/api-e2e/**/*",
         "packages/babylon/api-e2e/**/*",
-        "packages/babylon/api-e2e/**/*"
+        "packages/babylon/api-e2e/**/*",
+        "packages/game/api-e2e/**/*"
       ]
+    },
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
+      }
     }
   ],
   "targetDefaults": {
     "test": {
+      "dependsOn": ["^build"]
+    },
+    "e2e-ci--**/*": {
       "dependsOn": ["^build"]
     }
   },

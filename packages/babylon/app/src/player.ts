@@ -7,7 +7,7 @@ import {
   Vector3,
 } from '@babylonjs/core';
 import { doCreateColorMaterial } from './material';
-import { doPlayerController } from './controls';
+import { doJumpPlayerController, doPlayerController } from './controls';
 import {
   doPlayerWithVelocityController,
   doStablePlayerWithVelocityController,
@@ -25,6 +25,18 @@ export const setupPlayer = (scene: Scene) => {
   box.material = createColorMaterial(new Color3(1, 0, 0));
   box.checkCollisions = true;
   const { keyboard, player } = doPlayerController(box);
+  scene.onKeyboardObservable.add(keyboard.registerInputs);
+  scene.registerBeforeRender(() => player.move());
+
+  return scene;
+};
+export const setupJumpPlayer = (scene: Scene) => {
+  // const createColorMaterial = doCreateColorMaterial(scene);
+  const box = MeshBuilder.CreateBox(`player`, { size: 1 }, scene);
+  box.position = new Vector3(0, 0.5, 0);
+  // box.material = createColorMaterial(new Color3(1, 0, 0));
+  // box.checkCollisions = true;
+  const { keyboard, player } = doJumpPlayerController(box, scene);
   scene.onKeyboardObservable.add(keyboard.registerInputs);
   scene.registerBeforeRender(() => player.move());
 

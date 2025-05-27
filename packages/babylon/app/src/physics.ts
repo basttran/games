@@ -28,6 +28,10 @@ export const setupBasicPhysics = (scene: Scene) => {
   scene.collisionsEnabled = true;
   return scene;
 };
+export const setupSceneCollisions = (scene: Scene) => {
+  scene.collisionsEnabled = true;
+  return scene;
+};
 
 export const setupCannonPhysics = (scene: Scene): Scene => {
   scene.enablePhysics(

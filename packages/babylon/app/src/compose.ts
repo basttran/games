@@ -11,8 +11,14 @@ import {
   setupBasicPhysics,
   setupCannonPhysics,
   setupImpostors,
+  setupSceneCollisions,
 } from './physics';
-import { setupPlayer, setupPlayerWithVelocity, setupStablePlayerWithVelocity } from './player';
+import {
+  setupJumpPlayer,
+  setupPlayer,
+  setupPlayerWithVelocity,
+  setupStablePlayerWithVelocity,
+} from './player';
 import { setupPointerLock } from './scene';
 import { setupImposturedMeshesWithTriggers } from './trigger';
 import { setupMeshWithVelocity } from './velocity';
@@ -28,6 +34,16 @@ export const compositions = {
     setupBoundary,
     setupOverviewCamera,
     setupPlayer
+  ),
+  basicJump: flow(
+    setupSceneCollisions,
+    setupBackground,
+    setupLights,
+    setupGround,
+    // setupBoxes(false),
+    // setupBoundary,
+    setupOverviewCamera,
+    setupJumpPlayer
   ),
   basicFPS: flow(
     setupBasicPhysics,

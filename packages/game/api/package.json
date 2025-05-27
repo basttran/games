@@ -1,0 +1,36 @@
+{
+  "name": "@games/game-api",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "name": "game-api",
+    "projectType": "application",
+    "sourceRoot": "packages/game/api/src",
+    "targets": {
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "game-api:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "game-api:build:development"
+          },
+          "production": {
+            "buildTarget": "game-api:build:production"
+          }
+        }
+      },
+      "test": {
+        "options": {
+          "passWithNoTests": true
+        }
+      }
+    }
+  }
+}

@@ -20,6 +20,15 @@
     },
     {
       "path": "./packages/babylon/api"
+    },
+    {
+      "path": "./packages/game/app"
+    },
+    {
+      "path": "./packages/game/api-e2e"
+    },
+    {
+      "path": "./packages/game/api"
     }
   ]
 }

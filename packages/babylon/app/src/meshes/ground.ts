@@ -1,4 +1,10 @@
-import { Color3, MeshBuilder, PhysicsImpostor, Scene } from '@babylonjs/core';
+import {
+  Color3,
+  MeshBuilder,
+  PhysicsImpostor,
+  Scene,
+  Vector3,
+} from '@babylonjs/core';
 import { doCreateColorMaterial } from '../material';
 import { setPhysics } from '../physics';
 
@@ -9,6 +15,7 @@ export const setupGround = (scene: Scene) => {
     { width: 20, height: 20 },
     scene
   );
+  ground.position = Vector3.Zero();
   ground.material = createColorMaterial(new Color3(0, 1, 0));
   ground.checkCollisions = true;
   return scene;
