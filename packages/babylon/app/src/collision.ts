@@ -8,9 +8,9 @@ import {
   Scene,
   Vector3,
 } from '@babylonjs/core';
-import { UniversalBuilder } from '../meshes/builders';
-import { doCreateColorMaterial } from '../meshes/material';
-import { setPhysics } from '../physics';
+import { UniversalBuilder } from './meshes/builders';
+import { doCreateColorMaterial } from './meshes/material';
+import { setPhysics } from './physics';
 
 const doSetColliderMaterialTo =
   (material: PBRMaterial) =>

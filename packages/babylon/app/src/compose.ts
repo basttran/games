@@ -2,7 +2,6 @@ import { Scene } from '@babylonjs/core';
 import { flow } from 'fp-ts/function';
 import { setupBackground } from './background';
 import { setupFirstPersonCamera, setupOverviewCamera } from './camera';
-import { setupImposturedMeshesWithCollisions } from './interactions/collision';
 import { setupLights } from './lights';
 import { setupBoundary } from './meshes/boundary';
 import { setupBoxes, setupBoxesWithImpostors } from './meshes/boxes';
@@ -22,6 +21,7 @@ import {
 import { setupPointerLock } from './scene';
 import { setupImposturedMeshesWithTriggers } from './trigger';
 import { setupMeshWithVelocity } from './velocity';
+import { setupImposturedMeshesWithCollisions } from './collision';
 
 export const compositions = {
   basic: flow(

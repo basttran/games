@@ -11,7 +11,7 @@ import { doJumpPlayerController, doPlayerController } from './controls';
 import {
   doPlayerWithVelocityController,
   doStablePlayerWithVelocityController,
-} from './interactions/controls';
+} from './controls';
 import { setPhysics } from './physics';
 
 export const setupPlayer = (scene: Scene) => {
@@ -31,11 +31,9 @@ export const setupPlayer = (scene: Scene) => {
   return scene;
 };
 export const setupJumpPlayer = (scene: Scene) => {
-  // const createColorMaterial = doCreateColorMaterial(scene);
   const box = MeshBuilder.CreateBox(`player`, { size: 1 }, scene);
   box.position = new Vector3(0, 0.5, 0);
-  // box.material = createColorMaterial(new Color3(1, 0, 0));
-  // box.checkCollisions = true;
+
   const { keyboard, player } = doJumpPlayerController(box, scene);
   scene.onKeyboardObservable.add(keyboard.registerInputs);
   scene.registerBeforeRender(() => player.move());
