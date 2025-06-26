@@ -42,7 +42,7 @@ export const setupCannonPhysics = (scene: Scene): Scene => {
 };
 
 export const setupAmmoPhysics = async (scene: Scene): Promise<Scene> => {
-  const ammo = await Ammo();
+  const ammo = await Ammo.call({});
   scene.enablePhysics(new Vector3(0, -9.81, 0), new AmmoJSPlugin(true, ammo));
   return scene;
 };

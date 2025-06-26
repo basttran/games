@@ -3,6 +3,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  optimizeDeps: {
+    exclude: ['@babylonjs/havok'],
+  },
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/packages/babylon/app',
   server: {

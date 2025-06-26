@@ -8,8 +8,7 @@ import {
   Scene,
   Vector3,
 } from '@babylonjs/core';
-import { setupLights } from './lights';
-import { setupOverviewCamera } from './camera';
+import { setupHavokPhysics } from './physics';
 
 const createScene = (engine: Engine): Scene => {
   const scene = new Scene(engine); //,
@@ -92,7 +91,10 @@ const panic = (delta: number) => {
   console.log('snap/smooth to authoritative state');
 };
 
-const composeScene = (scene: Scene) => {
+const composeScene = async (scene: Scene) => {
+  // await setupAmmoPhysics(scene);
+  await setupHavokPhysics(scene);
+
   const hemiLight = new HemisphericLight(
     'hemilight',
     new Vector3(0, 3, 0),
@@ -104,11 +106,11 @@ const composeScene = (scene: Scene) => {
     { width: 3, height: 3 },
     scene
   );
-  ground.checkCollisions = true;
+  // ground.checkCollisions = true;
 
   const box = MeshBuilder.CreateBox('box', { size: 1 }, scene);
   box.position = new Vector3(0, 0.5, 0);
-  box.checkCollisions = true;
+  // box.checkCollisions = true;
   box.ellipsoid.x = 0.5;
   box.ellipsoid.y = 0.5;
   box.ellipsoid.z = 0.5;
@@ -144,9 +146,9 @@ const composeScene = (scene: Scene) => {
   };
 };
 
-export const runLoop = (engine: Engine) => {
+export const runLoop = async (engine: Engine) => {
   const scene = createScene(engine);
-  const { update, draw } = composeScene(scene);
+  const { update, draw } = await composeScene(scene);
   const maxFPS = 30;
   const timestep = 1000 / 60;
 
