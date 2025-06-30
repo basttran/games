@@ -5,6 +5,8 @@ import {
   KeyboardInfo,
   Mesh,
   MeshBuilder,
+  PhysicsAggregate,
+  PhysicsShapeType,
   Scene,
   Vector3,
 } from '@babylonjs/core';
@@ -30,29 +32,27 @@ type State = {
 
 const updatePlayerPosition = (
   state: State,
-  mesh: Mesh,
+  mesh: PhysicsAggregate,
   speed: number,
   deltaTime: number
 ): void => {
   const totalRotation =
     (Number(state.rotateLeft) * -1 + Number(state.rotateRight)) * speed * 10;
-  mesh.rotation.y += totalRotation;
+  mesh.body.setAngularVelocity(new Vector3(0, totalRotation, 0));
 
-  const medialVelocity = mesh.forward.scale(
+  const medialVelocity = mesh.transformNode.forward.scale(
     Number(state.backward) * -1 + Number(state.forward)
   );
-  const lateralVelocity = mesh.right.scale(
+  const lateralVelocity = mesh.transformNode.right.scale(
     Number(state.strifeLeft) * -1 + Number(state.strifeRight)
   );
-  const altitudinalVelocity = mesh.up.scale(
-    -9.81 * 0.1
-    // Number(state.down) * -1 + Number(state.up)
-  );
-  const totalVelocity = medialVelocity.add(
-    lateralVelocity.add(altitudinalVelocity)
-  );
+  // const altitudinalVelocity = mesh.transformNode.up.scale(
+  //   -9.81 * 0.1
+  //   // Number(state.down) * -1 + Number(state.up)
+  // );
+  const totalVelocity = medialVelocity.add(lateralVelocity);
 
-  mesh.moveWithCollisions(totalVelocity.scale(speed).scale(deltaTime));
+  mesh.body.setLinearVelocity(totalVelocity.scale(speed).scale(deltaTime));
 };
 
 const updateControllerStateFromInputState = (scene: Scene, state: State) => {
@@ -92,7 +92,6 @@ const panic = (delta: number) => {
 };
 
 const composeScene = async (scene: Scene) => {
-  // await setupAmmoPhysics(scene);
   await setupHavokPhysics(scene);
 
   const hemiLight = new HemisphericLight(
@@ -106,18 +105,28 @@ const composeScene = async (scene: Scene) => {
     { width: 3, height: 3 },
     scene
   );
-  // ground.checkCollisions = true;
+
+  const groundAggregate = new PhysicsAggregate(
+    ground,
+    PhysicsShapeType.BOX,
+    { mass: 0 },
+    scene
+  );
 
   const box = MeshBuilder.CreateBox('box', { size: 1 }, scene);
   box.position = new Vector3(0, 0.5, 0);
-  // box.checkCollisions = true;
-  box.ellipsoid.x = 0.5;
-  box.ellipsoid.y = 0.5;
-  box.ellipsoid.z = 0.5;
+
+  const boxAggregate = new PhysicsAggregate(
+    box,
+    PhysicsShapeType.BOX,
+    { mass: 1 },
+    scene
+  );
+
   const camera = new FreeCamera('camera', new Vector3(0, 1, -10), scene);
   camera.setTarget(Vector3.Zero());
 
-  const speed = 0.001;
+  const speed = 10;
 
   const state = {
     forward: false,
@@ -136,20 +145,20 @@ const composeScene = async (scene: Scene) => {
 
   return {
     update: (deltaTime: number) => {
-      updatePlayerPosition(state, box, speed, deltaTime);
+      console.log('deltaTime: ', deltaTime);
+      updatePlayerPosition(state, boxAggregate, speed, deltaTime);
       // updateWorld()
     },
-    draw: (timestepsLeft: number) => {
-      console.log({ timestepsLeft });
+    draw: (_timestepsLeft: number) => {
       scene.render();
     },
   };
 };
 
-export const runLoop = async (engine: Engine) => {
+const runLoop = async (engine: Engine) => {
   const scene = createScene(engine);
   const { update, draw } = await composeScene(scene);
-  const maxFPS = 30;
+  const maxFPS = 60;
   const timestep = 1000 / 60;
 
   let delta = 0;
@@ -190,3 +199,5 @@ export const runLoop = async (engine: Engine) => {
 
   requestAnimationFrame(mainLoop);
 };
+
+export const runGameLoop = async (engine: Engine) => await runLoop(engine);

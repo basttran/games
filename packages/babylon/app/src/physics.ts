@@ -48,10 +48,10 @@ export const setupAmmoPhysics = async (scene: Scene): Promise<Scene> => {
 };
 
 export const setupHavokPhysics = async (scene: Scene): Promise<Scene> => {
-  const havokInterface = await HavokPhysics();
+  const havokInstance = await HavokPhysics();
   scene.enablePhysics(
     new Vector3(0, -9.81, 0),
-    new HavokPlugin(true, havokInterface)
+    new HavokPlugin(true, havokInstance)
   );
   return scene;
 };
